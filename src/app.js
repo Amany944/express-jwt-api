@@ -10,6 +10,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const config = require('./config');
 const routes = require('./routes');
+const { setupSwagger } = require('./config/swagger');
 const { notFound, errorHandler } = require('./middlewares/error.middleware');
 
 const app = express();
@@ -20,6 +21,9 @@ app.use(cors({ origin: config.corsOrigin, credentials: true }));
 app.use(express.json({ limit: '10kb' })); // parse le JSON, limite la taille
 app.use(express.urlencoded({ extended: true }));
 if (config.env !== 'test') app.use(morgan(config.env === 'production' ? 'combined' : 'dev'));
+
+// --- Documentation Swagger (avant les routes et le 404) ---
+setupSwagger(app);
 
 // --- Routes ---
 app.use('/api', routes);

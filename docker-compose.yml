@@ -1,0 +1,43 @@
+# ------------------------------------------------------------
+# Lance l'API et MongoDB ensemble :  docker compose up -d --build
+# Les secrets JWT sont lus depuis le fichier .env (voir .env.example).
+# ------------------------------------------------------------
+services:
+  api:
+    build: .
+    container_name: express-jwt-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      # "mongo" = nom du service ci-dessous (résolution DNS interne de Docker)
+      MONGO_URI: mongodb://mongo:27017/express_jwt_api
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Définissez JWT_ACCESS_SECRET dans .env}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Définissez JWT_REFRESH_SECRET dans .env}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    depends_on:
+      mongo:
+        condition: service_healthy # attend que MongoDB soit prêt
+
+  mongo:
+    image: mongo:7
+    container_name: express-jwt-mongo
+    restart: unless-stopped
+    # Port exposé pour se connecter depuis l'hôte (Compass, mongosh).
+    # Retirez cette section en production.
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db # persistance des données
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo-data:

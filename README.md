@@ -11,6 +11,8 @@ Structure de projet **Express.js** prête pour la production, avec **authentific
 - Sécurité : Helmet, CORS, limitation de débit (anti brute-force), taille de body limitée
 - Validation des entrées avec **express-validator**
 - Gestion centralisée des erreurs (Mongoose, doublons, 404, 500)
+- Documentation **Swagger / OpenAPI 3** interactive sur `/api/docs`
+- **Docker** : Dockerfile multi-étapes + `docker-compose` avec MongoDB
 - Tests d'intégration **Jest + Supertest + MongoDB en mémoire** (aucune base requise)
 
 ## Arborescence
@@ -20,7 +22,8 @@ express-jwt-api/
 ├── src/
 │   ├── config/
 │   │   ├── index.js              # Lecture et validation des variables d'environnement
-│   │   └── database.js           # Connexion / déconnexion MongoDB
+│   │   ├── database.js           # Connexion / déconnexion MongoDB
+│   │   └── swagger.js            # Montage de Swagger UI
 │   ├── models/
 │   │   └── User.js               # Schéma utilisateur + hachage du mot de passe
 │   ├── controllers/
@@ -44,8 +47,14 @@ express-jwt-api/
 │   │   └── user.validator.js
 │   ├── app.js                    # Configuration Express (testable)
 │   └── server.js                 # Point d'entrée : DB + écoute HTTP
+├── docs/
+│   └── openapi.yaml              # Spécification OpenAPI 3 (Swagger)
 ├── tests/
-│   └── auth.test.js
+│   ├── auth.test.js
+│   └── docs.test.js
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
 ├── .env.example
 ├── .gitignore
 ├── LICENSE
@@ -75,6 +84,33 @@ Générer des secrets JWT robustes :
 ```bash
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
+
+## Lancer avec Docker
+
+Prérequis : Docker et Docker Compose.
+
+```bash
+cp .env.example .env          # renseignez JWT_ACCESS_SECRET et JWT_REFRESH_SECRET
+docker compose up -d --build  # construit l'API et démarre MongoDB
+docker compose logs -f api    # suivre les journaux
+docker compose down           # arrêter (ajoutez -v pour effacer les données)
+```
+
+- L'API est disponible sur http://localhost:3000 et MongoDB sur `localhost:27017`.
+- Dans le conteneur, l'API se connecte à `mongodb://mongo:27017` (nom du service), la valeur `MONGO_URI` de `.env` est donc ignorée.
+- Les données MongoDB sont conservées dans le volume `mongo-data`.
+- L'API attend que MongoDB soit prêt (healthcheck) avant de démarrer.
+
+## Documentation Swagger
+
+Une fois le serveur lancé :
+
+- Interface interactive : http://localhost:3000/api/docs
+- Spécification JSON : http://localhost:3000/api/docs.json (importable dans Postman ou Insomnia)
+
+Pour tester une route protégée : appelez `POST /auth/login`, copiez l'`accessToken`, cliquez sur **Authorize** et collez le jeton.
+
+La spécification se trouve dans `docs/openapi.yaml` : pensez à la mettre à jour quand vous ajoutez une route.
 
 ## Scripts
 
@@ -154,7 +190,7 @@ Client                                   API
 2. Créer le contrôleur : `src/controllers/product.controller.js`
 3. Créer les règles : `src/validators/product.validator.js`
 4. Créer les routes : `src/routes/product.routes.js`
-5. Les brancher dans `src/routes/index.js` :
+5. Les brancher dans `src/routes/index.js` (et documenter la route dans `docs/openapi.yaml`) :
 
 ```js
 router.use('/products', require('./product.routes'));

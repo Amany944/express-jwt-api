@@ -8,9 +8,18 @@
     "dev": "nodemon src/server.js",
     "test": "jest --runInBand --detectOpenHandles"
   },
-  "keywords": ["express", "jwt", "mongodb", "mongoose", "api", "boilerplate"],
+  "keywords": [
+    "express",
+    "jwt",
+    "mongodb",
+    "mongoose",
+    "api",
+    "boilerplate"
+  ],
   "license": "MIT",
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -21,7 +30,9 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.1",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "jest": "^29.7.0",
@@ -29,5 +40,8 @@
     "nodemon": "^3.1.7",
     "supertest": "^7.0.0"
   },
-  "jest": { "testEnvironment": "node", "testTimeout": 60000 }
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 60000
+  }
 }
